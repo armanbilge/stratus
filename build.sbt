@@ -1,4 +1,5 @@
 ThisBuild / tlBaseVersion := "0.0"
+ThisBuild / tlUntaggedAreSnapshots := false
 
 ThisBuild / organization := "com.armanbilge"
 ThisBuild / organizationName := "Arman Bilge"
