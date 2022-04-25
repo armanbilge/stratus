@@ -22,15 +22,22 @@ import algebra.ring.Semifield
 import cats.Show
 import cats.derived.*
 import cats.kernel.Eq
+import cats.kernel.Monoid
 import schrodinger.math.syntax.*
 
 import scala.annotation.tailrec
+
+import Eagle.*
+import cats.kernel.CommutativeMonoid
+import algebra.ring.CommutativeSemifield
+import scala.util.NotGiven
 
 final case class Eagle[W](
     observationCount: Long,
     meanWeight: W,
     meanSquaredWeight: W
-) derives Eq, Show:
+) derives Eq,
+      Show:
   def effectiveSampleSize(using W: Semifield[W], eq: Eq[W]): W =
     relativeEffectiveSampleSize * fromLong(observationCount)
 
@@ -48,7 +55,34 @@ final case class Eagle[W](
       meanSquaredWeight * correction + W.pow(weight, 2) / newObservationCount
     )
 
-  private def fromLong(n: Long)(using W: Rig[W]): W =
+object Eagle:
+  def eaglet[W](using W: AdditiveMonoid[W]): Eagle[W] =
+    Eagle(0, W.zero, W.zero)
+
+  given [W: Semifield](using NotGiven[CommutativeSemifield[W]]): Monoid[Eagle[W]] =
+    new EagleMonoid
+
+  given [W: CommutativeSemifield]: CommutativeMonoid[Eagle[W]] =
+    new EagleMonoid[W] with CommutativeMonoid[Eagle[W]]
+
+  private class EagleMonoid[W](using W: Semifield[W]) extends Monoid[Eagle[W]]:
+    def empty = eaglet[W]
+
+    def combine(x: Eagle[W], y: Eagle[W]) =
+      if x.observationCount == 0 then y
+      else if y.observationCount == 0 then x
+      else
+        val observationCount = fromLong(x.observationCount + y.observationCount)
+        val xCorrection = fromLong(x.observationCount) / observationCount
+        val yCorrection = fromLong(y.observationCount) / observationCount
+
+        Eagle(
+          x.observationCount + y.observationCount,
+          x.meanWeight * xCorrection + y.meanWeight * yCorrection,
+          x.meanSquaredWeight * xCorrection + y.meanSquaredWeight * yCorrection
+        )
+
+  private def fromLong[W](n: Long)(using W: Rig[W]): W =
     def fromInt(n: Int) = W.sumN(W.one, n.toInt)
 
     if n.isValidInt then fromInt(n.toInt)
@@ -63,7 +97,3 @@ final case class Eagle[W](
           loop(d * k, y, k * r + acc)
 
       loop(W.one, n.abs, W.zero)
-
-object Eagle:
-  def eaglet[W](using W: AdditiveMonoid[W]): Eagle[W] =
-    Eagle(0, W.zero, W.zero)
