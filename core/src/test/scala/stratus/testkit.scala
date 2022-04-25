@@ -29,7 +29,12 @@ import Arbitrary.arbitrary
 opaque type PosRational = Rational
 
 object PosRational:
-  given Arbitrary[PosRational] = Arbitrary(rational.arbitrary.map(_.abs))
+  given Arbitrary[PosRational] = Arbitrary(
+    for
+      n <- arbitrary[Byte]
+      d <- arbitrary[Byte].map(n => if n == 0 then 1 else n)
+    yield Rational(n.abs, d)
+  )
   given Cogen[PosRational] =
     Cogen[(BigInt, BigInt)].contramap(r => (r.numerator.toBigInt, r.denominator.toBigInt))
   given Eq[PosRational] = Rational.RationalAlgebra
