@@ -29,6 +29,10 @@ import Arbitrary.arbitrary
 opaque type PosRational = Rational
 
 object PosRational:
+  def apply(n: Int): PosRational =
+    require(n >= 0)
+    Rational(n, 1)
+
   given Arbitrary[PosRational] = Arbitrary(
     for
       n <- arbitrary[Byte]

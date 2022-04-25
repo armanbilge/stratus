@@ -16,13 +16,32 @@
 
 package stratus
 
-import munit.DisciplineSuite
-import org.scalacheck.Arbitrary, Arbitrary.arbitrary
 import algebra.ring.Semifield
-import cats.kernel.laws.discipline.EqTests
+import cats.data.NonEmptyList
 import cats.kernel.laws.discipline.CommutativeMonoidTests
+import cats.kernel.laws.discipline.EqTests
+import cats.laws.discipline.arbitrary.given
+import cats.syntax.all.*
+import munit.DisciplineSuite
+import org.scalacheck.Prop.forAll
+import schrodinger.math.syntax.*
 
 class EagleSuite extends DisciplineSuite:
 
   checkAll("Eagle", EqTests[Eagle[PosRational]].eqv)
   checkAll("Eagle", CommutativeMonoidTests[Eagle[PosRational]].commutativeMonoid)
+
+  property("track means") {
+    forAll { (observations: NonEmptyList[PosRational]) =>
+      val size = PosRational(observations.size)
+      val expectedMeanWeight = observations.reduce(_ + _) / size
+      val expectedMeanSquaredWeight =
+        observations.reduceMap(x => x * x)(_ + _) / size
+
+      val expected = Eagle(observations.size, expectedMeanWeight, expectedMeanSquaredWeight)
+
+      val obtained = observations.foldLeft(Eagle.eaglet[PosRational])(_.observe(_))
+
+      assertEquals(obtained, expected)
+    }
+  }
