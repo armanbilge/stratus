@@ -43,7 +43,7 @@ final case class Eagle[W](
 
   def relativeEffectiveSampleSize(using W: Semifield[W], eq: Eq[W]): W =
     if W.isZero(meanSquaredWeight) then W.zero
-    else W.pow(meanWeight, 2) / meanSquaredWeight
+    else (meanWeight * meanWeight) / meanSquaredWeight
 
   def observe(weight: W)(using W: Semifield[W]): Eagle[W] =
     val observationCount = fromLong(this.observationCount)
@@ -52,7 +52,7 @@ final case class Eagle[W](
     Eagle(
       this.observationCount + 1,
       meanWeight * correction + weight / newObservationCount,
-      meanSquaredWeight * correction + W.pow(weight, 2) / newObservationCount
+      meanSquaredWeight * correction + (weight * weight) / newObservationCount
     )
 
 object Eagle:
