@@ -38,6 +38,7 @@ final case class Eagle[W](
     meanSquaredWeight: W
 ) derives Eq,
       Show:
+
   def effectiveSampleSize(using W: Semifield[W], eq: Eq[W]): W =
     relativeEffectiveSampleSize * fromLong(observationCount)
 
