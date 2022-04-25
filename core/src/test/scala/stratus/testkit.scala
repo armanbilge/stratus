@@ -26,23 +26,23 @@ import spire.math.Rational
 
 import Arbitrary.arbitrary
 
-opaque type PosRational = Rational
+opaque type NonNegRational = Rational
 
-object PosRational:
-  def apply(n: Int): PosRational =
+object NonNegRational:
+  def apply(n: Int): NonNegRational =
     require(n >= 0)
     Rational(n, 1)
 
-  given Arbitrary[PosRational] = Arbitrary(
+  given Arbitrary[NonNegRational] = Arbitrary(
     for
       n <- arbitrary[Byte]
       d <- arbitrary[Byte].map(n => if n == 0 then 1 else n)
     yield Rational(n.abs, d)
   )
-  given Cogen[PosRational] =
+  given Cogen[NonNegRational] =
     Cogen[(BigInt, BigInt)].contramap(r => (r.numerator.toBigInt, r.denominator.toBigInt))
-  given Eq[PosRational] = Rational.RationalAlgebra
-  given CommutativeSemifield[PosRational] = Rational.RationalAlgebra
+  given Eq[NonNegRational] = Rational.RationalAlgebra
+  given CommutativeSemifield[NonNegRational] = Rational.RationalAlgebra
 
 given [W: Semifield](using Arbitrary[List[W]]): Arbitrary[Eagle[W]] =
   Arbitrary(arbitrary[List[W]].map(_.foldLeft(Eagle.eaglet)(_.observe(_))))
