@@ -43,5 +43,6 @@ lazy val core = project
       "org.scalameta" %%% "munit-scalacheck" % munitVersion % Test,
       "org.typelevel" %%% "discipline-munit" % disciplineMunitVersion % Test,
       "org.scalacheck" %%% "scalacheck" % scalaCheckVersion % Test
-    )
+    ),
+    Test / fork := true
   )
