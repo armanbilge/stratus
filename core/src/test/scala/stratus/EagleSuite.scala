@@ -45,3 +45,12 @@ class EagleSuite extends DisciplineSuite:
       assertEquals(obtained, expected)
     }
   }
+
+  property("observe consistent with monoid") {
+    forAll { (eagle: Eagle[NonNegRational], observation: NonNegRational) =>
+      assertEquals(
+        eagle.observe(observation),
+        eagle |+| Eagle(1, observation, observation * observation)
+      )
+    }
+  }
