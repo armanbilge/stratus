@@ -19,6 +19,8 @@ package stratus
 import algebra.ring.AdditiveMonoid
 import algebra.ring.Rig
 import algebra.ring.Semifield
+import cats.Show
+import cats.derived.*
 import cats.kernel.Eq
 import schrodinger.math.syntax.*
 
@@ -28,7 +30,7 @@ final case class Eagle[W](
     observationCount: Long,
     meanWeight: W,
     meanSquaredWeight: W
-):
+) derives Eq, Show:
   def effectiveSampleSize(using W: Semifield[W], eq: Eq[W]): W =
     relativeEffectiveSampleSize * fromLong(observationCount)
 
@@ -65,4 +67,3 @@ final case class Eagle[W](
 object Eagle:
   def eaglet[W](using W: AdditiveMonoid[W]): Eagle[W] =
     Eagle(0, W.zero, W.zero)
-
