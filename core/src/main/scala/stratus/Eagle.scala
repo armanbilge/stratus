@@ -20,11 +20,13 @@ import algebra.ring.AdditiveMonoid
 import algebra.ring.CommutativeSemifield
 import algebra.ring.Rig
 import algebra.ring.Semifield
+import cats.Foldable
 import cats.Show
 import cats.derived.*
 import cats.kernel.CommutativeMonoid
 import cats.kernel.Eq
 import cats.kernel.Monoid
+import cats.syntax.all.*
 import schrodinger.math.syntax.*
 
 import scala.annotation.tailrec
@@ -57,6 +59,13 @@ final case class Eagle[W](
     )
 
 object Eagle:
+  def apply[F[_]: Foldable, W](weights: F[W])(using W: Semifield[W]): Eagle[W] =
+    val count = weights.size
+    val n = fromLong(count)
+    val meanWeight = W.sum(weights.toIterable) / n
+    val meanSquaredWeight = W.sum(weights.toIterable.map(x => x * x)) / n
+    Eagle(count, meanWeight, meanSquaredWeight)
+
   def eaglet[W](using W: AdditiveMonoid[W]): Eagle[W] =
     Eagle(0, W.zero, W.zero)
 
