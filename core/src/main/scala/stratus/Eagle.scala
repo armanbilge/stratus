@@ -17,20 +17,20 @@
 package stratus
 
 import algebra.ring.AdditiveMonoid
+import algebra.ring.CommutativeSemifield
 import algebra.ring.Rig
 import algebra.ring.Semifield
 import cats.Show
 import cats.derived.*
+import cats.kernel.CommutativeMonoid
 import cats.kernel.Eq
 import cats.kernel.Monoid
 import schrodinger.math.syntax.*
 
 import scala.annotation.tailrec
+import scala.util.NotGiven
 
 import Eagle.*
-import cats.kernel.CommutativeMonoid
-import algebra.ring.CommutativeSemifield
-import scala.util.NotGiven
 
 final case class Eagle[W](
     observationCount: Long,
