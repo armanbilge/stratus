@@ -32,16 +32,9 @@ class EagleSuite extends DisciplineSuite:
   checkAll("Eagle", CommutativeMonoidTests[Eagle[NonNegRational]].commutativeMonoid)
 
   property("track means") {
-    forAll { (observations: NonEmptyList[NonNegRational]) =>
-      val size = NonNegRational(observations.size)
-      val expectedMeanWeight = observations.reduce(_ + _) / size
-      val expectedMeanSquaredWeight =
-        observations.reduceMap(x => x * x)(_ + _) / size
-
-      val expected = Eagle(observations.size, expectedMeanWeight, expectedMeanSquaredWeight)
-
-      val obtained = observations.foldLeft(Eagle.eaglet[NonNegRational])(_.observe(_))
-
+    forAll { (weights: NonEmptyList[NonNegRational]) =>
+      val expected = Eagle(weights)
+      val obtained = weights.foldLeft(Eagle.eaglet[NonNegRational])(_.observe(_))
       assertEquals(obtained, expected)
     }
   }
