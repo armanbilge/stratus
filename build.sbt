@@ -15,15 +15,21 @@ ThisBuild / scalacOptions ++= Seq("-new-syntax", "-indent", "-source:future")
 ThisBuild / githubWorkflowJavaVersions := Seq(JavaSpec.temurin("17"))
 ThisBuild / tlJdkRelease := Some(8)
 
-lazy val root = tlCrossRootProject.aggregate(stratus)
+lazy val catsVersion = "2.7.0"
+lazy val catsEffectVersion = "3.3.11"
+lazy val fs2Version = "3.2.7"
+lazy val schrodingerVersion = "0.3-cb36e01"
 
-lazy val stratus = project
-  .in(file("stratus"))
+lazy val root = tlCrossRootProject.aggregate(core)
+
+lazy val core = project
+  .in(file("core"))
   .settings(
-    name := "stratus",
+    name := "stratus-core",
     libraryDependencies ++= Seq(
-      "org.typelevel" %%% "cats-core" % "2.7.0",
-      "org.typelevel" %%% "cats-effect" % "3.3.11",
-      "co.fs2" %%% "fs2-core" % "3.2.7"
+      "org.typelevel" %%% "cats-core" % catsVersion,
+      "org.typelevel" %%% "cats-effect" % catsEffectVersion,
+      "co.fs2" %%% "fs2-core" % fs2Version,
+      "com.armanbilge" %%% "schrodinger-monte-carlo" % schrodingerVersion
     )
   )
