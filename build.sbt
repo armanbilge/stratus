@@ -38,6 +38,8 @@ lazy val core = project
       "org.typelevel" %%% "cats-effect" % catsEffectVersion,
       "co.fs2" %%% "fs2-core" % fs2Version,
       "com.armanbilge" %%% "schrodinger-monte-carlo" % schrodingerVersion,
+      "com.armanbilge" %%% "schrodinger" % schrodingerVersion % Test,
+      "com.armanbilge" %%% "schrodinger-stats" % schrodingerVersion % Test,
       "org.typelevel" %%% "cats-laws" % catsVersion % Test,
       "org.typelevel" %%% "spire-laws" % spireVersion % Test,
       "org.scalameta" %%% "munit-scalacheck" % munitVersion % Test,

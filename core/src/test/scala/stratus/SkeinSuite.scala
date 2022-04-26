@@ -19,12 +19,23 @@ package stratus
 import cats.Id
 import cats.data.NonEmptyVector
 import cats.laws.discipline.arbitrary.given
+import cats.syntax.all.*
 import munit.DisciplineSuite
 import org.scalacheck.Arbitrary.arbitrary
 import org.scalacheck.Gen
 import org.scalacheck.Prop.forAll
+import schrodinger.Dist
+import schrodinger.montecarlo.Weighted
+import schrodinger.random.all.given
+import schrodinger.stats.all.given
 
 class SkeinSuite extends DisciplineSuite:
+
+  property("identity resampler preserves samples") {
+    forAll { (samples: Vector[Weighted[NonNegRational, Long]], eagle: Eagle[NonNegRational]) =>
+      // Resampler.identity[Dist[NonNegRational, _], NonNegRational, Long].resample(eagle)
+    }
+  }
 
   property("random-access vector pop") {
     forAll(

@@ -17,10 +17,14 @@
 package stratus
 
 import algebra.ring.CommutativeSemifield
+import algebra.ring.MultiplicativeMonoid
 import algebra.ring.Semifield
+import cats.Monad
 import cats.kernel.Eq
 import org.scalacheck.Arbitrary
 import org.scalacheck.Cogen
+import schrodinger.Dist
+import schrodinger.montecarlo.Weighted
 import spire.laws.arb.rational
 import spire.math.Rational
 
@@ -49,3 +53,8 @@ given [W: Semifield](using Arbitrary[List[W]]): Arbitrary[Eagle[W]] =
 
 given [W](using cogen: Cogen[(Long, W, W)]): Cogen[Eagle[W]] =
   cogen.contramap(e => (e.observationCount, e.meanWeight, e.meanSquaredWeight))
+
+given [W: MultiplicativeMonoid, A](using arb: Arbitrary[(W, A)]): Arbitrary[Weighted[W, A]] =
+  Arbitrary(arb.arbitrary.map((w, a) => Weighted(w, a)))
+
+given Monad[Dist[NonNegRational, _]] = Dist.commutativeMonad(128)
