@@ -17,12 +17,12 @@
 package stratus
 
 import cats.Id
+import cats.data.NonEmptyVector
 import cats.laws.discipline.arbitrary.given
 import munit.DisciplineSuite
 import org.scalacheck.Arbitrary.arbitrary
 import org.scalacheck.Gen
 import org.scalacheck.Prop.forAll
-import cats.data.NonEmptyVector
 
 class SkeinSuite extends DisciplineSuite:
 
