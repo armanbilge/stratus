@@ -92,7 +92,7 @@ object Eagle:
           x.meanSquaredWeight * xCorrection + y.meanSquaredWeight * yCorrection
         )
 
-  private def fromLong[W](n: Long)(using W: Rig[W]): W =
+  private[stratus] def fromLong[W](n: Long)(using W: Rig[W]): W =
     def fromInt(n: Int) = W.sumN(W.one, n.toInt)
 
     if n.isValidInt then fromInt(n.toInt)
