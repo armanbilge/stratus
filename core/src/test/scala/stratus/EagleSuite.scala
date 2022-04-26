@@ -23,8 +23,10 @@ import cats.kernel.laws.discipline.EqTests
 import cats.laws.discipline.arbitrary.given
 import cats.syntax.all.*
 import munit.DisciplineSuite
+import org.scalacheck.Gen
 import org.scalacheck.Prop.forAll
 import schrodinger.math.syntax.*
+import spire.math.Rational
 
 class EagleSuite extends DisciplineSuite:
 
@@ -46,4 +48,8 @@ class EagleSuite extends DisciplineSuite:
         eagle |+| Eagle(1, observation, observation * observation)
       )
     }
+  }
+
+  property("fromLong is correct") {
+    forAll(Gen.posNum[Long]) { n => assertEquals(Eagle.fromLong[Rational](n), Rational(n)) }
   }
