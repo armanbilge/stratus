@@ -34,7 +34,6 @@ class SkeinSuite extends DisciplineSuite:
         i <- Gen.chooseNum(0, v.length - 1)
       yield (v, i)) { (v, i) =>
       val (vp, vi) = Resampler.pop[Id, Long](i).run(v)
-      assertEquals(vi, v(i))
-      assertEquals(vp.sorted, v.indices.filterNot(_ == i).map(v).toVector.sorted)
+      assertEquals((vp :+ vi).sorted, v.sorted)
     }
   }
