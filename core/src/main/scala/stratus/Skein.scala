@@ -19,12 +19,22 @@ package stratus
 import cats.Monad
 import cats.data.StateT
 import cats.instances.stream
+import cats.syntax.all.*
+import schrodinger.kernel.Uniform
+import schrodinger.kernel.UniformRange
 import schrodinger.montecarlo.Weighted
 
 trait Resampler[F[_], W, A]:
   def resample(eagle: Eagle[W]): StateT[F, Vector[Weighted[W, A]], Option[Weighted[W, A]]]
 
 object Resampler:
+  def identity[F[_]: Monad: UniformRange, W, A]: Resampler[F, W, A] = eagle =>
+    StateT
+      .get
+      .flatMapF((v: Vector[Weighted[W, A]]) => Uniform(v.indices))
+      .flatMap(pop)
+      .map(Some(_))
+
   private[stratus] def pop[F[_]: Monad, A](i: Int): StateT[F, Vector[A], A] =
     for
       v <- StateT.get
