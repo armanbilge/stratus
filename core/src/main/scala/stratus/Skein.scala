@@ -16,8 +16,20 @@
 
 package stratus
 
+import cats.Monad
+import cats.data.StateT
+import cats.instances.stream
 import schrodinger.montecarlo.Weighted
 
-// final case class Skein[W, A](geese: Vector[Weighted[W, A]])
+trait Resampler[F[_], W, A]:
+  def resample(eagle: Eagle[W]): StateT[F, Vector[Weighted[W, A]], Option[Weighted[W, A]]]
 
-trait Skein[F[_], W, A]
+object Resampler:
+  private[stratus] def pop[F[_]: Monad, A](i: Int): StateT[F, Vector[A], A] =
+    for
+      v <- StateT.get
+      _ <- StateT.set {
+        if i < v.length - 1 then v.init.updated(i, v.last)
+        else v.init
+      }
+    yield v(i)
