@@ -18,6 +18,8 @@ package stratus
 
 import cats.Id
 import cats.data.NonEmptyVector
+import cats.data.StateT
+import cats.kernel.Order
 import cats.laws.discipline.arbitrary.given
 import cats.syntax.all.*
 import munit.DisciplineSuite
@@ -28,8 +30,6 @@ import schrodinger.Dist
 import schrodinger.montecarlo.Weighted
 import schrodinger.random.all.given
 import schrodinger.stats.all.given
-import cats.data.StateT
-import cats.kernel.Order
 
 class SkeinSuite extends DisciplineSuite:
 
