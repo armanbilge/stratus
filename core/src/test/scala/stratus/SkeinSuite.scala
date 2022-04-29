@@ -49,13 +49,7 @@ class SkeinSuite extends DisciplineSuite:
 
       val sortedSamples = samples.sorted(using Order[Weighted[NonNegRational, Long]].toOrdering)
 
-      assertEquals(
-        resampled.expect {
-          case `sortedSamples` => NonNegRational(1)
-          case _ => NonNegRational(0)
-        },
-        NonNegRational(1)
-      )
+      assertEquals(resampled.support, Map(sortedSamples -> NonNegRational(1)))
     }
   }
 
