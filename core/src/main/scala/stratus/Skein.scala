@@ -28,6 +28,8 @@ import schrodinger.kernel.UniformRange
 import schrodinger.math.Monus
 import schrodinger.math.syntax.*
 import schrodinger.montecarlo.Weighted
+import cats.kernel.Eq
+import algebra.ring.Rig
 
 trait Resampler[F[_], W, A]:
   def resample(eagle: Eagle[W]): StateT[F, Vector[Weighted[W, A]], Option[Weighted[W, A]]]
@@ -68,6 +70,14 @@ object Resampler:
       }
 
     ???
+
+  // wp <= wa.weight
+  private[stratus] def split[F[_]: Monad, W: Rig: Monus: Eq, A](
+      wa: Weighted[W, A],
+      wp: W
+  ): (Weighted[W, A], Weighted[W, A]) = wa match
+    case Weighted.Heavy(w, d, a) => (Weighted(wp, d, a), Weighted(w ∸ wp, d, a))
+    case weightless @ Weighted.Weightless(_) => (weightless, weightless)
 
   private[stratus] def pop[F[_]: Monad, A](i: Int): StateT[F, Vector[A], A] =
     for
