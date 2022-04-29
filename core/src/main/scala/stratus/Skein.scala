@@ -16,12 +16,17 @@
 
 package stratus
 
+import algebra.ring.Semifield
 import cats.Monad
 import cats.data.StateT
 import cats.instances.stream
+import cats.kernel.Order
 import cats.syntax.all.*
+import schrodinger.kernel.Categorical
 import schrodinger.kernel.Uniform
 import schrodinger.kernel.UniformRange
+import schrodinger.math.Monus
+import schrodinger.math.syntax.*
 import schrodinger.montecarlo.Weighted
 
 trait Resampler[F[_], W, A]:
@@ -34,6 +39,35 @@ object Resampler:
       .flatMapF((v: Vector[Weighted[W, A]]) => Uniform(v.indices))
       .flatMap(pop)
       .map(Some(_))
+
+  def targetWeight[F[_]: Monad: UniformRange, W: Monus: Order, A](computeTarget: Eagle[W] => W)(
+      using W: Semifield[W],
+      cat: Categorical[List[(Option[Weighted[W, A]], W)], Option[Weighted[W, A]]][F])
+      : Resampler[F, W, A] = eagle =>
+
+    val target = computeTarget(eagle)
+
+    Monad[StateT[F, Vector[Weighted[W, A]], _]]
+      .tailRecM((List.empty[Some[Weighted[W, A]]], W.zero)) { (chosen, sum) =>
+        StateT
+          .inspect[F, Vector[Weighted[W, A]], Boolean](_.nonEmpty & sum < target)
+          .ifM(
+            StateT
+              .inspect[F, Vector[Weighted[W, A]], Range](_.indices)
+              .flatMapF(Uniform(_))
+              .flatMap(pop(_))
+              .flatMap { chose =>
+                val newSum = sum + chose.weight
+
+                if newSum < target then (Some(chose) :: chosen, newSum).asLeft.pure
+                else ???
+              }
+              .as(???),
+            (chosen, sum).asRight.pure
+          )
+      }
+
+    ???
 
   private[stratus] def pop[F[_]: Monad, A](i: Int): StateT[F, Vector[A], A] =
     for
