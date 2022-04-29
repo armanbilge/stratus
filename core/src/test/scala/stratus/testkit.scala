@@ -16,6 +16,7 @@
 
 package stratus
 
+import algebra.ring.CommutativeRig
 import algebra.ring.CommutativeSemifield
 import algebra.ring.MultiplicativeMonoid
 import algebra.ring.Semifield
@@ -24,12 +25,12 @@ import cats.kernel.Order
 import org.scalacheck.Arbitrary
 import org.scalacheck.Cogen
 import schrodinger.Dist
+import schrodinger.math.Monus
 import schrodinger.montecarlo.Weighted
 import spire.laws.arb.rational
 import spire.math.Rational
 
 import Arbitrary.arbitrary
-import algebra.ring.CommutativeRig
 
 opaque type NonNegRational = Rational
 
@@ -37,6 +38,9 @@ object NonNegRational:
   def apply(n: Int): NonNegRational =
     require(n >= 0)
     Rational(n, 1)
+
+  def apply(m: Int, n: Int): NonNegRational =
+    Rational(m, n)
 
   given Arbitrary[NonNegRational] = Arbitrary(
     for
@@ -48,6 +52,11 @@ object NonNegRational:
     Cogen[(BigInt, BigInt)].contramap(r => (r.numerator.toBigInt, r.denominator.toBigInt))
   given Order[NonNegRational] = Rational.RationalAlgebra
   given CommutativeSemifield[NonNegRational] = Rational.RationalAlgebra
+  given Monus[NonNegRational] with
+    def monus(x: NonNegRational, y: NonNegRational) =
+      if x >= y then x - y else Rational.zero
+    def additiveCommutativeMonoid = given_CommutativeSemifield_NonNegRational
+    def naturalOrder = given_Order_NonNegRational
 
 given [W: Semifield](using Arbitrary[List[W]]): Arbitrary[Eagle[W]] =
   Arbitrary(arbitrary[List[W]].map(_.foldLeft(Eagle.eaglet)(_.observe(_))))

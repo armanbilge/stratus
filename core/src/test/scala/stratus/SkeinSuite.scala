@@ -87,6 +87,18 @@ class SkeinSuite extends DisciplineSuite:
     }
   }
 
+  property("splitting weighted conserves weight") {
+    forAll(
+      for
+        wa <- arbitrary[Weighted[NonNegRational, Long]]
+        wp <- arbitrary[Byte].map(x => NonNegRational(1, x.toInt.abs + 1) * wa.weight)
+      yield (wa, wp)
+    ) { (wa, wp) =>
+      val (wa1, wa2) = Resampler.split(wa, wp)
+      assertEquals(wa1.weight + wa2.weight, wa.weight)
+    }
+  }
+
   property("random-access vector pop") {
     forAll(
       for

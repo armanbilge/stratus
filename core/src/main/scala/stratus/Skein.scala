@@ -72,7 +72,7 @@ object Resampler:
     ???
 
   // wp <= wa.weight
-  private[stratus] def split[F[_]: Monad, W: Rig: Monus: Eq, A](
+  private[stratus] def split[W: Rig: Monus: Eq, A](
       wa: Weighted[W, A],
       wp: W
   ): (Weighted[W, A], Weighted[W, A]) = wa match
