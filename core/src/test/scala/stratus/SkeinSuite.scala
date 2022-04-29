@@ -17,19 +17,47 @@
 package stratus
 
 import cats.Id
+import cats.Monad
 import cats.data.NonEmptyVector
 import cats.data.StateT
 import cats.kernel.Order
 import cats.laws.discipline.arbitrary.given
 import cats.syntax.all.*
 import munit.DisciplineSuite
+import org.scalacheck.Arbitrary
 import org.scalacheck.Arbitrary.arbitrary
 import org.scalacheck.Gen
 import org.scalacheck.Prop.forAll
+import org.typelevel.discipline.Laws
 import schrodinger.Dist
+import schrodinger.math.syntax.*
 import schrodinger.montecarlo.Weighted
 import schrodinger.random.all.given
 import schrodinger.stats.all.given
+import algebra.ring.AdditiveMonoid
+
+class ResamplerTests[F[_], W, A](resampler: Resampler[F, W, A]) extends Laws:
+  def resampler(
+      using Monad[F],
+      AdditiveMonoid[W],
+      Arbitrary[Vector[Weighted[W, A]]],
+      Arbitrary[Eagle[W]]): RuleSet =
+    DefaultRuleSet(
+      "resampler",
+      None,
+      "conserves expected total weight" -> forAll {
+        (samples: Vector[Weighted[W, A]], eagle: Eagle[W]) =>
+          val received = resampler
+            .resample(eagle)
+            .map(_.toVector)
+            .whileM[Vector](StateT.inspect(_.nonEmpty))
+            .map(_.flatten.map(_.weight))
+            .map(AdditiveMonoid[W].sum(_))
+            .runA(samples)
+
+          ???
+      }
+    )
 
 class SkeinSuite extends DisciplineSuite:
 
