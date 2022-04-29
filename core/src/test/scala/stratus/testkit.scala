@@ -20,7 +20,7 @@ import algebra.ring.CommutativeSemifield
 import algebra.ring.MultiplicativeMonoid
 import algebra.ring.Semifield
 import cats.Monad
-import cats.kernel.Eq
+import cats.kernel.Order
 import org.scalacheck.Arbitrary
 import org.scalacheck.Cogen
 import schrodinger.Dist
@@ -45,7 +45,7 @@ object NonNegRational:
   )
   given Cogen[NonNegRational] =
     Cogen[(BigInt, BigInt)].contramap(r => (r.numerator.toBigInt, r.denominator.toBigInt))
-  given Eq[NonNegRational] = Rational.RationalAlgebra
+  given Order[NonNegRational] = Rational.RationalAlgebra
   given CommutativeSemifield[NonNegRational] = Rational.RationalAlgebra
 
 given [W: Semifield](using Arbitrary[List[W]]): Arbitrary[Eagle[W]] =

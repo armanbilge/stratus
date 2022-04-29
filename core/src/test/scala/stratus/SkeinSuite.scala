@@ -33,18 +33,29 @@ import cats.kernel.Order
 
 class SkeinSuite extends DisciplineSuite:
 
+  override def scalaCheckTestParameters =
+    super.scalaCheckTestParameters.withMaxSize(6)
+
   property("identity resampler preserves samples") {
     forAll { (samples: Vector[Weighted[NonNegRational, Long]], eagle: Eagle[NonNegRational]) =>
-      val received = Resampler
+      val resampled = Resampler
         .identity[Dist[NonNegRational, _], NonNegRational, Long]
         .resample(eagle)
         .map(_.toVector)
         .whileM[Vector](StateT.inspect(_.nonEmpty))
         .map(_.flatten)
-        // .map(_.sorted(using Order[Weighted[NonNegRational, Long]].toOrdering))
+        .map(_.sorted(using Order[Weighted[NonNegRational, Long]].toOrdering))
         .runA(samples)
 
-      ???
+      val sortedSamples = samples.sorted(using Order[Weighted[NonNegRational, Long]].toOrdering)
+
+      assertEquals(
+        resampled.expect {
+          case `sortedSamples` => NonNegRational(1)
+          case _ => NonNegRational(0)
+        },
+        NonNegRational(1)
+      )
     }
   }
 
