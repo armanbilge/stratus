@@ -58,11 +58,14 @@ object Resampler:
               .inspect[F, Vector[Weighted[W, A]], Range](_.indices)
               .flatMapF(Uniform(_))
               .flatMap(pop(_))
-              .flatMap { chose =>
-                val newSum = sum + chose.weight
-
-                if newSum < target then (Some(chose) :: chosen, newSum).asLeft.pure
-                else ???
+              .flatMap { sample =>
+                val newSum = sum + sample.weight
+                if newSum < target then (Some(sample) :: chosen, newSum).asLeft.pure
+                else
+                  val (choose, rtn) = split(sample, target ∸ newSum)
+                  StateT
+                    .modify[F, Vector[Weighted[W, A]]](_.appended(rtn))
+                    .as((sample :: chosen, target).asRight)
               }
               .as(???),
             (chosen, sum).asRight.pure
