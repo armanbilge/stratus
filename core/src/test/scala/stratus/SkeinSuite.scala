@@ -16,10 +16,12 @@
 
 package stratus
 
+import algebra.ring.CommutativeRig
 import cats.Id
 import cats.Monad
 import cats.data.NonEmptyVector
 import cats.data.StateT
+import cats.kernel.Eq
 import cats.kernel.Order
 import cats.laws.discipline.arbitrary.given
 import cats.syntax.all.*
@@ -34,12 +36,11 @@ import schrodinger.math.syntax.*
 import schrodinger.montecarlo.Weighted
 import schrodinger.random.all.given
 import schrodinger.stats.all.given
-import algebra.ring.AdditiveMonoid
 
-class ResamplerTests[F[_], W, A](resampler: Resampler[F, W, A]) extends Laws:
+class ResamplerTests[F[_], W, A](resampler: Resampler[Dist[W, _], W, A]) extends Laws:
   def resampler(
-      using Monad[F],
-      AdditiveMonoid[W],
+      using CommutativeRig[W],
+      Eq[W],
       Arbitrary[Vector[Weighted[W, A]]],
       Arbitrary[Eagle[W]]): RuleSet =
     DefaultRuleSet(
@@ -52,10 +53,10 @@ class ResamplerTests[F[_], W, A](resampler: Resampler[F, W, A]) extends Laws:
             .map(_.toVector)
             .whileM[Vector](StateT.inspect(_.nonEmpty))
             .map(_.flatten.map(_.weight))
-            .map(AdditiveMonoid[W].sum(_))
+            .map(CommutativeRig[W].sum(_))
             .runA(samples)
 
-          ???
+          received.mean === CommutativeRig[W].sum(samples.map(_.weight))
       }
     )
 
@@ -63,6 +64,11 @@ class SkeinSuite extends DisciplineSuite:
 
   override def scalaCheckTestParameters =
     super.scalaCheckTestParameters.withMaxSize(6)
+
+  checkAll(
+    "Resampler.identity",
+    ResamplerTests[Dist[NonNegRational, _], NonNegRational, Long](Resampler.identity).resampler
+  )
 
   property("identity resampler preserves samples") {
     forAll { (samples: Vector[Weighted[NonNegRational, Long]], eagle: Eagle[NonNegRational]) =>

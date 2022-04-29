@@ -29,6 +29,7 @@ import spire.laws.arb.rational
 import spire.math.Rational
 
 import Arbitrary.arbitrary
+import algebra.ring.CommutativeRig
 
 opaque type NonNegRational = Rational
 
@@ -57,4 +58,4 @@ given [W](using cogen: Cogen[(Long, W, W)]): Cogen[Eagle[W]] =
 given [W: MultiplicativeMonoid, A](using arb: Arbitrary[(W, A)]): Arbitrary[Weighted[W, A]] =
   Arbitrary(arb.arbitrary.map((w, a) => Weighted(w, a)))
 
-given Monad[Dist[NonNegRational, _]] = Dist.commutativeMonad(128)
+given [A: CommutativeRig]: Monad[Dist[A, _]] = Dist.commutativeMonad(128)
