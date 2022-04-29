@@ -28,12 +28,23 @@ import schrodinger.Dist
 import schrodinger.montecarlo.Weighted
 import schrodinger.random.all.given
 import schrodinger.stats.all.given
+import cats.data.StateT
+import cats.kernel.Order
 
 class SkeinSuite extends DisciplineSuite:
 
   property("identity resampler preserves samples") {
     forAll { (samples: Vector[Weighted[NonNegRational, Long]], eagle: Eagle[NonNegRational]) =>
-      // Resampler.identity[Dist[NonNegRational, _], NonNegRational, Long].resample(eagle)
+      val received = Resampler
+        .identity[Dist[NonNegRational, _], NonNegRational, Long]
+        .resample(eagle)
+        .map(_.toVector)
+        .whileM[Vector](StateT.inspect(_.nonEmpty))
+        .map(_.flatten)
+        // .map(_.sorted(using Order[Weighted[NonNegRational, Long]].toOrdering))
+        .runA(samples)
+
+      ???
     }
   }
 
