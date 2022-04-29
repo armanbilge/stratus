@@ -16,10 +16,13 @@
 
 package stratus
 
+import algebra.ring.Rig
 import algebra.ring.Semifield
 import cats.Monad
+import cats.data.OptionT
 import cats.data.StateT
 import cats.instances.stream
+import cats.kernel.Eq
 import cats.kernel.Order
 import cats.syntax.all.*
 import schrodinger.kernel.Categorical
@@ -28,8 +31,6 @@ import schrodinger.kernel.UniformRange
 import schrodinger.math.Monus
 import schrodinger.math.syntax.*
 import schrodinger.montecarlo.Weighted
-import cats.kernel.Eq
-import algebra.ring.Rig
 
 trait Resampler[F[_], W, A]:
   def resample(eagle: Eagle[W]): StateT[F, Vector[Weighted[W, A]], Option[Weighted[W, A]]]
@@ -50,7 +51,7 @@ object Resampler:
     val target = computeTarget(eagle)
 
     Monad[StateT[F, Vector[Weighted[W, A]], _]]
-      .tailRecM((List.empty[Some[Weighted[W, A]]], W.zero)) { (chosen, sum) =>
+      .tailRecM((List.empty[(Some[Weighted[W, A]], W)], W.zero)) { (chosen, sum) =>
         StateT
           .inspect[F, Vector[Weighted[W, A]], Boolean](_.nonEmpty & sum < target)
           .ifM(
@@ -60,19 +61,27 @@ object Resampler:
               .flatMap(pop(_))
               .flatMap { sample =>
                 val newSum = sum + sample.weight
-                if newSum < target then (Some(sample) :: chosen, newSum).asLeft.pure
+                if newSum < target then
+                  (Some(sample) -> sample.weight :: chosen, newSum).asLeft.pure
                 else
                   val (choose, rtn) = split(sample, target ∸ newSum)
                   StateT
                     .modify[F, Vector[Weighted[W, A]]](_.appended(rtn))
-                    .as((sample :: chosen, target).asRight)
-              }
-              .as(???),
+                    .as((Some(sample) -> sample.weight :: chosen, target).asRight)
+              },
             (chosen, sum).asRight.pure
           )
       }
-
-    ???
+      .flatMapF { (chosen, sum) =>
+        if chosen.isEmpty then none.pure
+        else
+          val samples = (none -> (target ∸ sum)) :: chosen
+          val sampled = OptionT(Categorical(samples)).map {
+            case Weighted.Heavy(_, density, a) => Weighted.Heavy(target, density, a)
+            case weightless => weightless
+          }
+          sampled.value
+      }
 
   // wp <= wa.weight
   private[stratus] def split[W: Rig: Monus: Eq, A](
