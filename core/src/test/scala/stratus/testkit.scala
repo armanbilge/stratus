@@ -24,7 +24,7 @@ import cats.Monad
 import cats.kernel.Order
 import org.scalacheck.Arbitrary
 import org.scalacheck.Cogen
-import schrodinger.Dist
+import schrodinger.kernel.testkit.Dist
 import schrodinger.math.Monus
 import schrodinger.montecarlo.Weighted
 import spire.laws.arb.rational

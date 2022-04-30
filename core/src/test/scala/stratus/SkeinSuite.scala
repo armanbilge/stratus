@@ -31,7 +31,7 @@ import org.scalacheck.Arbitrary.arbitrary
 import org.scalacheck.Gen
 import org.scalacheck.Prop.forAll
 import org.typelevel.discipline.Laws
-import schrodinger.Dist
+import schrodinger.kernel.testkit.Dist
 import schrodinger.math.syntax.*
 import schrodinger.montecarlo.Weighted
 import schrodinger.random.all.given
