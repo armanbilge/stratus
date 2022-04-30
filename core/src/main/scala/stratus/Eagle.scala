@@ -42,15 +42,15 @@ final case class Eagle[W](
       Show:
 
   def effectiveSampleSize(using W: Semifield[W], eq: Eq[W]): W =
-    relativeEffectiveSampleSize * fromLong(observationCount)
+    relativeEffectiveSampleSize * W.fromBigInt(observationCount)
 
   def relativeEffectiveSampleSize(using W: Semifield[W], eq: Eq[W]): W =
     if W.isZero(meanSquaredWeight) then W.zero
     else (meanWeight * meanWeight) / meanSquaredWeight
 
   def observe(weight: W)(using W: Semifield[W]): Eagle[W] =
-    val observationCount = fromLong(this.observationCount)
-    val newObservationCount = fromLong(this.observationCount + 1)
+    val observationCount = W.fromBigInt(this.observationCount)
+    val newObservationCount = W.fromBigInt(this.observationCount + 1)
     val correction = observationCount / newObservationCount
     Eagle(
       this.observationCount + 1,
@@ -61,7 +61,7 @@ final case class Eagle[W](
 object Eagle:
   def apply[F[_]: Foldable, W](weights: F[W])(using W: Semifield[W]): Eagle[W] =
     val count = weights.size
-    val n = fromLong(count)
+    val n = W.fromBigInt(count)
     val meanWeight = W.sum(weights.toIterable) / n
     val meanSquaredWeight = W.sum(weights.toIterable.map(x => x * x)) / n
     Eagle(count, meanWeight, meanSquaredWeight)
@@ -82,28 +82,12 @@ object Eagle:
       if x.observationCount == 0 then y
       else if y.observationCount == 0 then x
       else
-        val observationCount = fromLong(x.observationCount + y.observationCount)
-        val xCorrection = fromLong(x.observationCount) / observationCount
-        val yCorrection = fromLong(y.observationCount) / observationCount
+        val observationCount = W.fromBigInt(x.observationCount + y.observationCount)
+        val xCorrection = W.fromBigInt(x.observationCount) / observationCount
+        val yCorrection = W.fromBigInt(y.observationCount) / observationCount
 
         Eagle(
           x.observationCount + y.observationCount,
           x.meanWeight * xCorrection + y.meanWeight * yCorrection,
           x.meanSquaredWeight * xCorrection + y.meanSquaredWeight * yCorrection
         )
-
-  private[stratus] def fromLong[W](n: Long)(using W: Rig[W]): W =
-    def fromInt(n: Int) = W.sumN(W.one, n.toInt)
-
-    if n.isValidInt then fromInt(n.toInt)
-    else
-      val d = fromInt(1 << 30)
-      val mask = (1L << 30) - 1
-      @tailrec def loop(k: W, x: BigInt, acc: W): W =
-        if x.isValidInt then k * fromInt(x.toInt) + acc
-        else
-          val y = x >> 30
-          val r = fromInt((x & mask).toInt)
-          loop(d * k, y, k * r + acc)
-
-      loop(W.one, n.abs, W.zero)
