@@ -49,7 +49,3 @@ class EagleSuite extends DisciplineSuite:
       )
     }
   }
-
-  property("fromLong is correct") {
-    forAll(Gen.posNum[Long]) { n => assertEquals(Eagle.fromLong[Rational](n), Rational(n)) }
-  }
