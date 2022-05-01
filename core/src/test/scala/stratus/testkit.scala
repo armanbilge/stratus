@@ -31,10 +31,11 @@ import spire.laws.arb.rational
 import spire.math.Rational
 
 import Arbitrary.arbitrary
+import cats.kernel.Hash
 
 opaque type NonNegRational = Rational
 
-object NonNegRational:
+object NonNegRational extends NonNegRationalLowPriority:
   def apply(n: Int): NonNegRational =
     require(n >= 0)
     Rational(n, 1)
@@ -57,6 +58,9 @@ object NonNegRational:
       if x >= y then x - y else Rational.zero
     def additiveCommutativeMonoid = given_CommutativeSemifield_NonNegRational
     def naturalOrder = given_Order_NonNegRational
+
+private class NonNegRationalLowPriority:
+  given Hash[NonNegRational] = Hash.fromUniversalHashCode
 
 given [W: Semifield](using Arbitrary[List[W]]): Arbitrary[Eagle[W]] =
   Arbitrary(arbitrary[List[W]].map(_.foldLeft(Eagle.eaglet)(_.observe(_))))

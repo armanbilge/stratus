@@ -71,12 +71,23 @@ class SkeinSuite extends DisciplineSuite:
     ResamplerTests[Dist[NonNegRational, _], NonNegRational, Long](Resampler.identity).resampler
   )
 
-  checkAll(
-    "Resampler.targetMeanWeight",
-    ResamplerTests[Dist[NonNegRational, _], NonNegRational, Long](
-      Resampler.targetMeanWeight
-    ).resampler
-  )
+  // Dist.given_Categorical_G_A_Dist[List, Option[Weighted[NonNegRational, Long]], NonNegRational](
+  //   using summon[cats.Foldable[List]],
+  //   summon,
+  //   summon, //Dist.given_Categorical_Map_A_Dist[Option[Weighted[NonNegRational, Long]], NonNegRational]
+  // )
+
+  // given schrodinger.kernel.Categorical[Map[Option[Weighted[NonNegRational, Long]], NonNegRational], Option[Weighted[NonNegRational, Long]]][Dist[NonNegRational, *]] =
+  //   Dist.given_Categorical_Map_A_Dist[Option[Weighted[NonNegRational, Long]], NonNegRational]
+
+  summon[schrodinger.kernel.Categorical[Map[Option[Weighted[NonNegRational, Long]], NonNegRational], Option[Weighted[NonNegRational, Long]]][Dist[NonNegRational, *]]]
+
+  // checkAll(
+  //   "Resampler.targetMeanWeight",
+  //   ResamplerTests[Dist[NonNegRational, _], NonNegRational, Long](
+  //     Resampler.targetMeanWeight
+  //   ).resampler
+  // )
 
   property("identity resampler preserves samples") {
     forAll { (samples: Vector[Weighted[NonNegRational, Long]], eagle: Eagle[NonNegRational]) =>
