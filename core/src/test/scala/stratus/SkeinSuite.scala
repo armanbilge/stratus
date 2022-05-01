@@ -17,6 +17,7 @@
 package stratus
 
 import algebra.ring.CommutativeRig
+import algebra.ring.CommutativeSemifield
 import cats.Id
 import cats.Monad
 import cats.data.NonEmptyVector
@@ -39,7 +40,7 @@ import schrodinger.stats.all.given
 
 class ResamplerTests[F[_], W, A](resampler: Resampler[Dist[W, _], W, A]) extends Laws:
   def resampler(
-      using CommutativeRig[W],
+      using CommutativeSemifield[W],
       Eq[W],
       Arbitrary[Vector[Weighted[W, A]]],
       Arbitrary[Eagle[W]]): RuleSet =
@@ -49,7 +50,7 @@ class ResamplerTests[F[_], W, A](resampler: Resampler[Dist[W, _], W, A]) extends
       "conserves expected total weight" -> forAll {
         (samples: Vector[Weighted[W, A]], eagle: Eagle[W]) =>
           val received = resampler
-            .resample(eagle)
+            .resample(eagle |+| Eagle(samples.map(_.weight)))
             .map(_.toVector)
             .whileM[Vector](StateT.inspect(_.nonEmpty))
             .map(_.flatten.map(_.weight))
@@ -68,6 +69,13 @@ class SkeinSuite extends DisciplineSuite:
   checkAll(
     "Resampler.identity",
     ResamplerTests[Dist[NonNegRational, _], NonNegRational, Long](Resampler.identity).resampler
+  )
+
+  checkAll(
+    "Resampler.targetMeanWeight",
+    ResamplerTests[Dist[NonNegRational, _], NonNegRational, Long](
+      Resampler.targetMeanWeight
+    ).resampler
   )
 
   property("identity resampler preserves samples") {
