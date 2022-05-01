@@ -53,38 +53,40 @@ object Resampler:
       cat: Categorical[List[(Option[Weighted[W, A]], W)], Option[Weighted[W, A]]][F])
       : Resampler[F, W, A] = eagle =>
     StateT.liftF(computeTarget(eagle)).flatMap { target =>
-      Monad[StateT[F, Vector[Weighted[W, A]], _]]
-        .tailRecM((List.empty[(Some[Weighted[W, A]], W)], W.zero)) { (chosen, sum) =>
-          StateT
-            .inspect[F, Vector[Weighted[W, A]], Boolean](_.nonEmpty & sum < target)
-            .ifM(
-              StateT
-                .inspect[F, Vector[Weighted[W, A]], Range](_.indices)
-                .flatMapF(Uniform(_))
-                .flatMap(pop(_))
-                .flatMap { sample =>
-                  val newSum = sum + sample.weight
-                  if newSum < target then
-                    (Some(sample) -> sample.weight :: chosen, newSum).asLeft.pure
-                  else
-                    val (choose, rtn) = split(sample, target ∸ newSum)
-                    StateT
-                      .modify[F, Vector[Weighted[W, A]]](_.appended(rtn))
-                      .as((Some(sample) -> sample.weight :: chosen, target).asRight)
-                },
-              (chosen, sum).asRight.pure
-            )
-        }
-        .flatMapF { (chosen, sum) =>
-          if chosen.isEmpty then none.pure
-          else
-            val samples = (none -> (target ∸ sum)) :: chosen
-            val sampled = OptionT(Categorical(samples)).map {
-              case Weighted.Heavy(_, density, a) => Weighted.Heavy(target, density, a)
-              case weightless => weightless
-            }
-            sampled.value
-        }
+      if W.isZero(target) then none.pure
+      else
+        Monad[StateT[F, Vector[Weighted[W, A]], _]]
+          .tailRecM((List.empty[(Some[Weighted[W, A]], W)], W.zero)) { (chosen, sum) =>
+            StateT
+              .inspect[F, Vector[Weighted[W, A]], Boolean](_.nonEmpty & sum < target)
+              .ifM(
+                StateT
+                  .inspect[F, Vector[Weighted[W, A]], Range](_.indices)
+                  .flatMapF(Uniform(_))
+                  .flatMap(pop(_))
+                  .flatMap { sample =>
+                    val newSum = sum + sample.weight
+                    if newSum < target then
+                      (Some(sample) -> sample.weight :: chosen, newSum).asLeft.pure
+                    else
+                      val (choose, rtn) = split(sample, target ∸ newSum)
+                      StateT
+                        .modify[F, Vector[Weighted[W, A]]](_.appended(rtn))
+                        .as((Some(sample) -> sample.weight :: chosen, target).asRight)
+                  },
+                (chosen, sum).asRight.pure
+              )
+          }
+          .flatMapF { (chosen, sum) =>
+            if chosen.isEmpty then none.pure
+            else
+              val samples = (none -> (target ∸ sum)) :: chosen
+              val sampled = OptionT(Categorical(samples)).map {
+                case Weighted.Heavy(_, density, a) => Weighted.Heavy(target, density, a)
+                case weightless => weightless
+              }
+              sampled.value
+          }
     }
 
   // wp <= wa.weight
