@@ -19,6 +19,7 @@ package stratus
 import algebra.ring.Rig
 import algebra.ring.Semifield
 import cats.Monad
+import cats.data.Nested
 import cats.data.NonEmptyList
 import cats.data.OptionT
 import cats.data.StateT
@@ -81,7 +82,10 @@ object Resampler:
             if chosen.isEmpty then none.pure
             else
               val samples = NonEmptyList((none -> (target ∸ sum)), chosen)
-              val sampled = OptionT(Categorical(samples)).map {
+              val normalized = Nested[NonEmptyList, (Option[Weighted[W, A]], _), W](samples)
+                .map(_ / target)
+                .value
+              val sampled = OptionT(Categorical(normalized)).map {
                 case Weighted.Heavy(_, density, a) => Weighted.Heavy(target, density, a)
                 case weightless => weightless
               }
