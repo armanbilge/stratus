@@ -72,7 +72,7 @@ object Resampler:
                       val (choose, rtn) = split(sample, target ∸ sum)
                       StateT
                         .modify[F, Vector[Weighted[W, A]]](_.appended(rtn))
-                        .as((Some(sample) -> sample.weight :: chosen, target).asRight)
+                        .as((Some(choose) -> choose.weight :: chosen, target).asRight)
                   },
                 (chosen, sum).asRight.pure
               )
