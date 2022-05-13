@@ -23,7 +23,6 @@ import cats.data.Nested
 import cats.data.NonEmptyList
 import cats.data.OptionT
 import cats.data.StateT
-import cats.instances.stream
 import cats.kernel.Eq
 import cats.kernel.Order
 import cats.syntax.all.*
