@@ -21,6 +21,7 @@ import algebra.ring.CommutativeSemifield
 import algebra.ring.MultiplicativeMonoid
 import algebra.ring.Semifield
 import cats.Monad
+import cats.kernel.Hash
 import cats.kernel.Order
 import org.scalacheck.Arbitrary
 import org.scalacheck.Cogen
@@ -31,7 +32,6 @@ import spire.laws.arb.rational
 import spire.math.Rational
 
 import Arbitrary.arbitrary
-import cats.kernel.Hash
 
 opaque type NonNegRational = Rational
 
