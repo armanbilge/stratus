@@ -40,22 +40,22 @@ class ResamplerTests[F[_], W, A](resampler: Resampler[Dist[W, _], W, A]) extends
   def resampler(
       using CommutativeSemifield[W],
       Eq[W],
-      Arbitrary[Vector[Weighted[W, A]]],
+      Arbitrary[NonEmptyVector[Weighted[W, A]]],
       Arbitrary[Eagle[W]]): RuleSet =
     DefaultRuleSet(
       "resampler",
       None,
       "conserves expected total weight" -> forAll {
-        (samples: Vector[Weighted[W, A]], eagle: Eagle[W]) =>
+        (samples: NonEmptyVector[Weighted[W, A]], eagle: Eagle[W]) =>
           val received = resampler
             .resample(eagle |+| Eagle(samples.map(_.weight)))
             .map(_.toVector)
             .whileM[Vector](StateT.inspect(_.nonEmpty))
             .map(_.flatten.map(_.weight))
             .map(CommutativeRig[W].sum(_))
-            .runA(samples)
+            .runA(samples.toVector)
 
-          received.mean === CommutativeRig[W].sum(samples.map(_.weight))
+          received.mean === CommutativeRig[W].sum(samples.map(_.weight).toVector)
       }
     )
 
