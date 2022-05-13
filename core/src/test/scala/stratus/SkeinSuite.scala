@@ -92,6 +92,28 @@ class SkeinSuite extends DisciplineSuite:
     }
   }
 
+  property("targetMeanWeight resampler targets mean weight") {
+    forAll {
+      (
+          samples: NonEmptyVector[Weighted[NonNegRational, Long]],
+          eagle0: Eagle[NonNegRational]
+      ) =>
+        val eagle = eagle0 |+| Eagle(samples.map(_.weight))
+
+        val resampled = Resampler
+          .targetMeanWeight[Dist[NonNegRational, _], NonNegRational, Long]
+          .resample(eagle)
+          .whileM[Vector](StateT.inspect(_.nonEmpty))
+          .map(_.flatten)
+          .runA(samples.toVector)
+
+        for
+          resample <- resampled.support.keySet
+          sample <- resample
+        do assertEquals(sample.weight, eagle.meanWeight)
+    }
+  }
+
   property("splitting weighted conserves weight") {
     forAll { (wa: Weighted[NonNegRational, Long], b: Byte) =>
       val wp = NonNegRational(1, b.toInt.abs + 1) * wa.weight
