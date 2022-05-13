@@ -20,7 +20,7 @@ import algebra.ring.AdditiveMonoid
 import algebra.ring.CommutativeSemifield
 import algebra.ring.Rig
 import algebra.ring.Semifield
-import cats.Foldable
+import cats.Reducible
 import cats.Show
 import cats.derived.*
 import cats.kernel.CommutativeMonoid
@@ -59,7 +59,7 @@ final case class Eagle[W](
     )
 
 object Eagle:
-  def apply[F[_]: Foldable, W](weights: F[W])(using W: Semifield[W]): Eagle[W] =
+  def apply[F[_]: Reducible, W](weights: F[W])(using W: Semifield[W]): Eagle[W] =
     val count = weights.size
     val n = W.fromBigInt(count)
     val meanWeight = W.sum(weights.toIterable) / n
