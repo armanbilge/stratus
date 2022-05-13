@@ -19,7 +19,7 @@ val catsVersion = "2.7.0"
 val kittensVersion = "3.0.0-M4"
 val catsEffectVersion = "3.3.11"
 val fs2Version = "3.2.7"
-val schrodingerVersion = "0.3-e97397d"
+val schrodingerVersion = "0.4-e5d9dda"
 val spireVersion = "0.18.0-M3"
 
 val munitVersion = "0.7.29"
@@ -39,7 +39,6 @@ lazy val core = project
       "co.fs2" %%% "fs2-core" % fs2Version,
       "com.armanbilge" %%% "schrodinger-monte-carlo" % schrodingerVersion,
       "com.armanbilge" %%% "schrodinger-testkit" % schrodingerVersion % Test,
-      "com.armanbilge" %%% "schrodinger-stats" % schrodingerVersion % Test,
       "org.typelevel" %%% "cats-laws" % catsVersion % Test,
       "org.typelevel" %%% "spire-laws" % spireVersion % Test,
       "org.scalameta" %%% "munit-scalacheck" % munitVersion % Test,

@@ -35,8 +35,6 @@ import org.typelevel.discipline.Laws
 import schrodinger.kernel.testkit.Dist
 import schrodinger.math.syntax.*
 import schrodinger.montecarlo.Weighted
-import schrodinger.random.all.given
-import schrodinger.stats.all.given
 
 class ResamplerTests[F[_], W, A](resampler: Resampler[Dist[W, _], W, A]) extends Laws:
   def resampler(
@@ -80,7 +78,7 @@ class SkeinSuite extends DisciplineSuite:
   // given schrodinger.kernel.Categorical[Map[Option[Weighted[NonNegRational, Long]], NonNegRational], Option[Weighted[NonNegRational, Long]]][Dist[NonNegRational, *]] =
   //   Dist.given_Categorical_Map_A_Dist[Option[Weighted[NonNegRational, Long]], NonNegRational]
 
-  summon[schrodinger.kernel.Categorical[Map[Option[Weighted[NonNegRational, Long]], NonNegRational], Option[Weighted[NonNegRational, Long]]][Dist[NonNegRational, *]]]
+  // summon[schrodinger.kernel.Categorical[Map[Option[Weighted[NonNegRational, Long]], NonNegRational], Option[Weighted[NonNegRational, Long]]][Dist[NonNegRational, *]]]
 
   // checkAll(
   //   "Resampler.targetMeanWeight",

@@ -19,6 +19,7 @@ package stratus
 import algebra.ring.Rig
 import algebra.ring.Semifield
 import cats.Monad
+import cats.data.NonEmptyList
 import cats.data.OptionT
 import cats.data.StateT
 import cats.instances.stream
@@ -26,8 +27,7 @@ import cats.kernel.Eq
 import cats.kernel.Order
 import cats.syntax.all.*
 import schrodinger.kernel.Categorical
-import schrodinger.kernel.Uniform
-import schrodinger.kernel.UniformRange
+import schrodinger.kernel.DiscreteUniform
 import schrodinger.math.Monus
 import schrodinger.math.syntax.*
 import schrodinger.montecarlo.Weighted
@@ -36,22 +36,22 @@ trait Resampler[F[_], W, A]:
   def resample(eagle: Eagle[W]): StateT[F, Vector[Weighted[W, A]], Option[Weighted[W, A]]]
 
 object Resampler:
-  def identity[F[_]: Monad: UniformRange, W, A]: Resampler[F, W, A] = eagle =>
+  def identity[F[_]: Monad, W, A](using DiscreteUniform[F, Long]): Resampler[F, W, A] = eagle =>
     StateT
       .get
-      .flatMapF((v: Vector[Weighted[W, A]]) => Uniform(v.indices))
+      .flatMapF((v: Vector[Weighted[W, A]]) => DiscreteUniform(v.indices))
       .flatMap(pop)
       .map(Some(_))
 
-  def targetMeanWeight[F[_]: Monad: UniformRange, W: Semifield: Monus: Order, A](
-      using Categorical[List[(Option[Weighted[W, A]], W)], Option[Weighted[W, A]]][F]
+  def targetMeanWeight[F[_]: Monad, W: Semifield: Monus: Order, A](
+      using cat: Categorical[F, NonEmptyList[W], Long],
+      unif: DiscreteUniform[F, Long]
   ): Resampler[F, W, A] = targetWeight(_.meanWeight.pure)
 
-  def targetWeight[F[_]: Monad: UniformRange, W: Monus: Order, A](
-      computeTarget: Eagle[W] => F[W])(
+  def targetWeight[F[_]: Monad, W: Monus: Order, A](computeTarget: Eagle[W] => F[W])(
       using W: Semifield[W],
-      cat: Categorical[List[(Option[Weighted[W, A]], W)], Option[Weighted[W, A]]][F])
-      : Resampler[F, W, A] = eagle =>
+      cat: Categorical[F, NonEmptyList[W], Long],
+      unif: DiscreteUniform[F, Long]): Resampler[F, W, A] = eagle =>
     StateT.liftF(computeTarget(eagle)).flatMap { target =>
       if W.isZero(target) then none.pure
       else
@@ -62,7 +62,7 @@ object Resampler:
               .ifM(
                 StateT
                   .inspect[F, Vector[Weighted[W, A]], Range](_.indices)
-                  .flatMapF(Uniform(_))
+                  .flatMapF(DiscreteUniform(_))
                   .flatMap(pop(_))
                   .flatMap { sample =>
                     val newSum = sum + sample.weight
@@ -80,7 +80,7 @@ object Resampler:
           .flatMapF { (chosen, sum) =>
             if chosen.isEmpty then none.pure
             else
-              val samples = (none -> (target ∸ sum)) :: chosen
+              val samples = NonEmptyList((none -> (target ∸ sum)), chosen)
               val sampled = OptionT(Categorical(samples)).map {
                 case Weighted.Heavy(_, density, a) => Weighted.Heavy(target, density, a)
                 case weightless => weightless
