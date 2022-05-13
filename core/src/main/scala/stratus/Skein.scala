@@ -69,7 +69,7 @@ object Resampler:
                     if newSum < target then
                       (Some(sample) -> sample.weight :: chosen, newSum).asLeft.pure
                     else
-                      val (choose, rtn) = split(sample, target ∸ newSum)
+                      val (choose, rtn) = split(sample, target ∸ sum)
                       StateT
                         .modify[F, Vector[Weighted[W, A]]](_.appended(rtn))
                         .as((Some(sample) -> sample.weight :: chosen, target).asRight)
