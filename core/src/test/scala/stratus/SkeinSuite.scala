@@ -49,7 +49,6 @@ class ResamplerTests[F[_], W, A](resampler: Resampler[Dist[W, _], W, A]) extends
         (samples: NonEmptyVector[Weighted[W, A]], eagle: Eagle[W]) =>
           val received = resampler
             .resample(eagle |+| Eagle(samples.map(_.weight)))
-            .map(_.toVector)
             .whileM[Vector](StateT.inspect(_.nonEmpty))
             .map(_.flatten.map(_.weight))
             .map(CommutativeRig[W].sum(_))
@@ -62,7 +61,7 @@ class ResamplerTests[F[_], W, A](resampler: Resampler[Dist[W, _], W, A]) extends
 class SkeinSuite extends DisciplineSuite:
 
   override def scalaCheckTestParameters =
-    super.scalaCheckTestParameters.withMaxSize(6)
+    super.scalaCheckTestParameters.withMaxSize(5)
 
   checkAll(
     "Resampler.identity",
