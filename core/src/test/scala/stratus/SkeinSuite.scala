@@ -93,25 +93,19 @@ class SkeinSuite extends DisciplineSuite:
   }
 
   property("splitting weighted conserves weight") {
-    forAll(
-      for
-        wa <- arbitrary[Weighted[NonNegRational, Long]]
-        wp <- arbitrary[Byte].map(x => NonNegRational(1, x.toInt.abs + 1) * wa.weight)
-      yield (wa, wp)
-    ) { (wa, wp) =>
+    forAll { (wa: Weighted[NonNegRational, Long], b: Byte) =>
+      val wp = NonNegRational(1, b.toInt.abs + 1) * wa.weight
       val (wa1, wa2) = Resampler.split(wa, wp)
       assertEquals(wa1.weight + wa2.weight, wa.weight)
     }
   }
 
   property("random-access vector pop") {
-    forAll(
-      for
-        nev <- arbitrary[NonEmptyVector[Long]]
-        v = nev.toVector
-        i <- Gen.chooseNum(0, v.length - 1)
-      yield (v, i)) { (v, i) =>
-      val (vp, vi) = Resampler.pop[Id, Long](i).run(v)
-      assertEquals((vp :+ vi).sorted, v.sorted)
+    forAll { (nev: NonEmptyVector[Long]) =>
+      val v = nev.toVector
+      forAll(Gen.chooseNum(0, v.length - 1)) { i =>
+        val (vp, vi) = Resampler.pop[Id, Long](i).run(v)
+        assertEquals((vp :+ vi).sorted, v.sorted)
+      }
     }
   }
