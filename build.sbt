@@ -23,8 +23,10 @@ val schrodingerVersion = "0.4-92617b8"
 val spireVersion = "0.18.0-M3"
 
 val munitVersion = "0.7.29"
+val munitCEVersion = "1.0.7"
 val disciplineMunitVersion = "1.0.9"
 val scalaCheckVersion = "1.16.0"
+val scalaCheckEffectVersion = "1.0.4"
 
 lazy val root = tlCrossRootProject.aggregate(core)
 
@@ -42,8 +44,10 @@ lazy val core = project
       "org.typelevel" %%% "cats-laws" % catsVersion % Test,
       "org.typelevel" %%% "spire-laws" % spireVersion % Test,
       "org.scalameta" %%% "munit-scalacheck" % munitVersion % Test,
+      "org.typelevel" %%% "munit-cats-effect-3" % munitCEVersion % Test,
       "org.typelevel" %%% "discipline-munit" % disciplineMunitVersion % Test,
-      "org.scalacheck" %%% "scalacheck" % scalaCheckVersion % Test
+      "org.scalacheck" %%% "scalacheck" % scalaCheckVersion % Test,
+      "org.typelevel" %%% "scalacheck-effect-munit" % scalaCheckEffectVersion % Test,
     ),
     Test / fork := true
   )
