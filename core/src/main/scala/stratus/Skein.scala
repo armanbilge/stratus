@@ -16,6 +16,8 @@
 
 package stratus
 
+import cats.FlatMap
+import cats.syntax.all.*
 import fs2.Pipe
 import fs2.Pull
 import fs2.Stream
@@ -25,17 +27,32 @@ trait Skein[F[_], W]:
   def pipe[A]: Pipe[F, Weighted[W, A], Weighted[W, A]]
 
 object Skein:
-  def apply[F[_], W](size: Int, eagle: F[Eagle[W]], resampler: Resampler[F, W]): Skein[F, W] =
+  def apply[F[_]: FlatMap, W](
+      size: Int,
+      eagle: F[Eagle[W]],
+      resampler: Resampler[F, W]): Skein[F, W] =
     new:
       def pipe[A] = in =>
 
-        case class State(
-            flock: Vector[Weighted[W, A]] = Vector.empty,
-            finalFlight: Boolean = false
-        )
+        def go(
+            flock: Vector[Weighted[W, A]],
+            in: Stream[F, Weighted[W, A]]
+        ): Pull[F, Weighted[W, A], Unit] =
+          in.pull.uncons.flatMap {
+            case Some((chunk, tail)) =>
+              emitWhile(flock ++ chunk.toVector, size).flatMap(go(_, tail))
+            case None =>
+              emitWhile(flock, 0) >> Pull.done
+          }
 
-        def go(in: Stream[F, Weighted[W, A]]): Pull[F, Weighted[W, A], State] =
-          in.pull.uncons
-          ???
+        def emitWhile(
+            flock: Vector[Weighted[W, A]],
+            threshold: Int
+        ): Pull[F, Weighted[W, A], Vector[Weighted[W, A]]] =
+          if flock.length > threshold then
+            Pull.eval(eagle.flatMap(resampler.resample(_).run(flock))).flatMap {
+              (flock, sample) => Pull.outputOption1(sample) >> emitWhile(flock, threshold)
+            }
+          else Pull.pure(flock)
 
-        ???
+        go(Vector.empty, in).stream
