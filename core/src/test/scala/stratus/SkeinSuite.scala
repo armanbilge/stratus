@@ -66,3 +66,31 @@ class SkeinSuite extends CatsEffectSuite, ScalaCheckEffectSuite:
       }
     }
   }
+
+  test("terminates") {
+    forAllF(
+      arbitrary[List[Weighted[NonNegRational, Unit]]],
+      Gen.size,
+      arbitrary[SplitMix]
+    ) { (samples, skeinSize, splitMix) =>
+      RVIO.algebra[SplitMix].flatMap {
+        case given RVIO.Algebra[SplitMix] =>
+          val rv = Ref.of(Eagle.eaglet[NonNegRational]).flatMap { eagle =>
+            Stream
+              .emits(samples)
+              .through(
+                Skein(
+                  skeinSize,
+                  eagle.get,
+                  Resampler.identity
+                ).pipe
+              )
+              .compile
+              .drain
+          }
+
+          rv.simulate(splitMix)
+      }
+
+    }
+  }
