@@ -47,7 +47,7 @@ lazy val core = project
       "org.typelevel" %%% "munit-cats-effect-3" % munitCEVersion % Test,
       "org.typelevel" %%% "discipline-munit" % disciplineMunitVersion % Test,
       "org.scalacheck" %%% "scalacheck" % scalaCheckVersion % Test,
-      "org.typelevel" %%% "scalacheck-effect-munit" % scalaCheckEffectVersion % Test,
+      "org.typelevel" %%% "scalacheck-effect-munit" % scalaCheckEffectVersion % Test
     ),
     Test / fork := true
   )
