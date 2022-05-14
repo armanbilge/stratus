@@ -55,7 +55,7 @@ class SkeinSuite extends CatsEffectSuite, ScalaCheckEffectSuite:
                         >> Resampler.identity.resample(eagle)
                 ).pipe
               )
-              .drop(100 * skeinSize)
+              .take(100 * skeinSize)
               .compile
               .drain
           }
