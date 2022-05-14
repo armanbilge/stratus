@@ -23,17 +23,19 @@ import cats.syntax.all.*
 import fs2.Stream
 import munit.CatsEffectSuite
 import munit.ScalaCheckEffectSuite
+import org.scalacheck.Arbitrary.arbitrary
 import org.scalacheck.Gen
 import org.scalacheck.effect.PropF.forAllF
 import schrodinger.RVIO
 import schrodinger.kernel.DiscreteUniform
 import schrodinger.montecarlo.Weighted
+import schrodinger.testkit.arbitrary.given
 import schrodinger.unsafe.rng.SplitMix
 
 class SkeinSuite extends CatsEffectSuite, ScalaCheckEffectSuite:
 
   test("sample size maintained above threshold") {
-    forAllF(Gen.size) { skeinSize =>
+    forAllF(Gen.size, arbitrary[SplitMix]) { (skeinSize, splitMix) =>
       RVIO.algebra[SplitMix].flatMap {
         case given RVIO.Algebra[SplitMix] =>
           val rv = Ref.of(Eagle.eaglet[NonNegRational]).flatMap { eagle =>
@@ -60,7 +62,7 @@ class SkeinSuite extends CatsEffectSuite, ScalaCheckEffectSuite:
               .drain
           }
 
-          SplitMix.fromTime[IO].flatMap(rv.simulate)
+          rv.simulate(splitMix)
       }
     }
   }
