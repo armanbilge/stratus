@@ -58,7 +58,7 @@ class ResamplerTests[F[_], W, A](resampler: Resampler[Dist[W, _], W, A]) extends
       }
     )
 
-class SkeinSuite extends DisciplineSuite:
+class ResamplerSuite extends DisciplineSuite:
 
   override def scalaCheckTestParameters =
     super.scalaCheckTestParameters.withMaxSize(4)
