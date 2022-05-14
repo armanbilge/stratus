@@ -63,8 +63,7 @@ object Resampler:
                 .inspect[F, Vector[Weighted[W, A]], Boolean](_.nonEmpty & sum < target)
                 .ifM(
                   StateT
-                    .inspect[F, Vector[Weighted[W, A]], Range](_.indices)
-                    .flatMapF(DiscreteUniform(_))
+                    .inspectF[F, Vector[Weighted[W, A]], Int](s => DiscreteUniform(s.indices))
                     .flatMap(pop(_))
                     .flatMap { sample =>
                       val newSum = sum + sample.weight
