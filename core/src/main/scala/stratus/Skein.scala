@@ -49,7 +49,7 @@ object Skein:
             flock: Vector[Weighted[W, A]],
             threshold: Int
         ): Pull[F, Weighted[W, A], Vector[Weighted[W, A]]] =
-          if flock.length > threshold then
+          if flock.length >= threshold && flock.nonEmpty then
             Pull.eval(eagle.flatMap(resampler.resample(_).run(flock))).flatMap {
               (flock, sample) => Pull.outputOption1(sample) >> emitWhile(flock, threshold)
             }
