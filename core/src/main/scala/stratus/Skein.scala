@@ -17,9 +17,25 @@
 package stratus
 
 import fs2.Pipe
+import fs2.Pull
+import fs2.Stream
 import schrodinger.montecarlo.Weighted
 
-trait Skein[F[_], W, A]:
-  def pipe: Pipe[F, Weighted[W, A], Weighted[W, A]]
+trait Skein[F[_], W]:
+  def pipe[A]: Pipe[F, Weighted[W, A], Weighted[W, A]]
 
-object Skein
+object Skein:
+  def apply[F[_], W](size: Int, eagle: F[Eagle[W]], resampler: Resampler[F, W]): Skein[F, W] =
+    new:
+      def pipe[A] = in =>
+
+        case class State(
+            flock: Vector[Weighted[W, A]] = Vector.empty,
+            finalFlight: Boolean = false
+        )
+
+        def go(in: Stream[F, Weighted[W, A]]): Pull[F, Weighted[W, A], State] =
+          in.pull.uncons
+          ???
+
+        ???
