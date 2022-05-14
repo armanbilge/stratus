@@ -36,8 +36,8 @@ import schrodinger.kernel.testkit.Dist
 import schrodinger.math.syntax.*
 import schrodinger.montecarlo.Weighted
 
-class ResamplerTests[F[_], W, A](resampler: Resampler[Dist[W, _], W, A]) extends Laws:
-  def resampler(
+class ResamplerTests[F[_], W, A](resampler: Resampler[Dist[W, _], W]) extends Laws:
+  def resampler[A](
       using CommutativeSemifield[W],
       Eq[W],
       Arbitrary[NonEmptyVector[Weighted[W, A]]],
@@ -48,7 +48,7 @@ class ResamplerTests[F[_], W, A](resampler: Resampler[Dist[W, _], W, A]) extends
       "conserves expected total weight" -> forAll {
         (samples: NonEmptyVector[Weighted[W, A]], eagle: Eagle[W]) =>
           val received = resampler
-            .resample(eagle |+| Eagle(samples.map(_.weight)))
+            .resample[A](eagle |+| Eagle(samples.map(_.weight)))
             .whileM[Vector](StateT.inspect(_.nonEmpty))
             .map(_.flatten.map(_.weight))
             .map(CommutativeRig[W].sum(_))
@@ -78,8 +78,8 @@ class ResamplerSuite extends DisciplineSuite:
   property("identity resampler preserves samples") {
     forAll { (samples: Vector[Weighted[NonNegRational, Long]], eagle: Eagle[NonNegRational]) =>
       val resampled = Resampler
-        .identity[Dist[NonNegRational, _], NonNegRational, Long]
-        .resample(eagle)
+        .identity[Dist[NonNegRational, _], NonNegRational]
+        .resample[Long](eagle)
         .map(_.toVector)
         .whileM[Vector](StateT.inspect(_.nonEmpty))
         .map(_.flatten)
@@ -101,8 +101,8 @@ class ResamplerSuite extends DisciplineSuite:
         val eagle = eagle0 |+| Eagle(samples.map(_.weight))
 
         val resampled = Resampler
-          .targetMeanWeight[Dist[NonNegRational, _], NonNegRational, Long]
-          .resample(eagle)
+          .targetMeanWeight[Dist[NonNegRational, _], NonNegRational]
+          .resample[Long](eagle)
           .whileM[Vector](StateT.inspect(_.nonEmpty))
           .map(_.flatten)
           .runA(samples.toVector)

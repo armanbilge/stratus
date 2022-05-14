@@ -32,65 +32,67 @@ import schrodinger.math.Monus
 import schrodinger.math.syntax.*
 import schrodinger.montecarlo.Weighted
 
-trait Resampler[F[_], W, A]:
-  def resample(eagle: Eagle[W]): StateT[F, Vector[Weighted[W, A]], Option[Weighted[W, A]]]
+trait Resampler[F[_], W]:
+  def resample[A](eagle: Eagle[W]): StateT[F, Vector[Weighted[W, A]], Option[Weighted[W, A]]]
 
 object Resampler:
-  def identity[F[_]: Monad, W, A](using DiscreteUniform[F, Long]): Resampler[F, W, A] = eagle =>
-    StateT
-      .get
-      .flatMapF((v: Vector[Weighted[W, A]]) => DiscreteUniform(v.indices))
-      .flatMap(pop)
-      .map(Some(_))
+  def identity[F[_]: Monad, W](using DiscreteUniform[F, Long]): Resampler[F, W] = new:
+    def resample[A](eagle: Eagle[W]) =
+      StateT
+        .get
+        .flatMapF((v: Vector[Weighted[W, A]]) => DiscreteUniform(v.indices))
+        .flatMap(pop)
+        .map(Some(_))
 
-  def targetMeanWeight[F[_]: Monad, W: Semifield: Monus: Order, A](
+  def targetMeanWeight[F[_]: Monad, W: Semifield: Monus: Order](
       using cat: Categorical[F, NonEmptyList[W], Long],
       unif: DiscreteUniform[F, Long]
-  ): Resampler[F, W, A] = targetWeight(_.meanWeight.pure)
+  ): Resampler[F, W] = targetWeight(_.meanWeight.pure)
 
-  def targetWeight[F[_]: Monad, W: Monus: Order, A](computeTarget: Eagle[W] => F[W])(
+  def targetWeight[F[_]: Monad, W: Monus: Order](computeTarget: Eagle[W] => F[W])(
       using W: Semifield[W],
       cat: Categorical[F, NonEmptyList[W], Long],
-      unif: DiscreteUniform[F, Long]): Resampler[F, W, A] = eagle =>
-    StateT.liftF(computeTarget(eagle)).flatMap { target =>
-      if W.isZero(target) then none.pure
-      else
-        Monad[StateT[F, Vector[Weighted[W, A]], _]]
-          .tailRecM((List.empty[(Some[Weighted[W, A]], W)], W.zero)) { (chosen, sum) =>
-            StateT
-              .inspect[F, Vector[Weighted[W, A]], Boolean](_.nonEmpty & sum < target)
-              .ifM(
-                StateT
-                  .inspect[F, Vector[Weighted[W, A]], Range](_.indices)
-                  .flatMapF(DiscreteUniform(_))
-                  .flatMap(pop(_))
-                  .flatMap { sample =>
-                    val newSum = sum + sample.weight
-                    if newSum < target then
-                      (Some(sample) -> sample.weight :: chosen, newSum).asLeft.pure
-                    else
-                      val (choose, rtn) = split(sample, target ∸ sum)
-                      StateT
-                        .modify[F, Vector[Weighted[W, A]]](_.appended(rtn))
-                        .as((Some(choose) -> choose.weight :: chosen, target).asRight)
-                  },
-                (chosen, sum).asRight.pure
-              )
-          }
-          .flatMapF { (chosen, sum) =>
-            if chosen.isEmpty then none.pure
-            else
-              val samples = NonEmptyList((none -> (target ∸ sum)), chosen)
-              val normalized = Nested[NonEmptyList, (Option[Weighted[W, A]], _), W](samples)
-                .map(_ / target)
-                .value
-              val sampled = OptionT(Categorical(normalized)).map {
-                case Weighted.Heavy(_, density, a) => Weighted.Heavy(target, density, a)
-                case weightless => weightless
-              }
-              sampled.value
-          }
-    }
+      unif: DiscreteUniform[F, Long]): Resampler[F, W] = new:
+    def resample[A](eagle: Eagle[W]) =
+      StateT.liftF(computeTarget(eagle)).flatMap { target =>
+        if W.isZero(target) then none.pure
+        else
+          Monad[StateT[F, Vector[Weighted[W, A]], _]]
+            .tailRecM((List.empty[(Some[Weighted[W, A]], W)], W.zero)) { (chosen, sum) =>
+              StateT
+                .inspect[F, Vector[Weighted[W, A]], Boolean](_.nonEmpty & sum < target)
+                .ifM(
+                  StateT
+                    .inspect[F, Vector[Weighted[W, A]], Range](_.indices)
+                    .flatMapF(DiscreteUniform(_))
+                    .flatMap(pop(_))
+                    .flatMap { sample =>
+                      val newSum = sum + sample.weight
+                      if newSum < target then
+                        (Some(sample) -> sample.weight :: chosen, newSum).asLeft.pure
+                      else
+                        val (choose, rtn) = split(sample, target ∸ sum)
+                        StateT
+                          .modify[F, Vector[Weighted[W, A]]](_.appended(rtn))
+                          .as((Some(choose) -> choose.weight :: chosen, target).asRight)
+                    },
+                  (chosen, sum).asRight.pure
+                )
+            }
+            .flatMapF { (chosen, sum) =>
+              if chosen.isEmpty then none.pure
+              else
+                val samples = NonEmptyList((none -> (target ∸ sum)), chosen)
+                val normalized = Nested[NonEmptyList, (Option[Weighted[W, A]], _), W](samples)
+                  .map(_ / target)
+                  .value
+                val sampled = OptionT(Categorical(normalized)).map {
+                  case Weighted.Heavy(_, density, a) => Weighted.Heavy(target, density, a)
+                  case weightless => weightless
+                }
+                sampled.value
+            }
+      }
 
   // wp <= wa.weight
   private[stratus] def split[W: Rig: Monus: Eq, A](
