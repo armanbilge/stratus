@@ -81,7 +81,7 @@ object Resampler:
             .flatMapF { (chosen, sum) =>
               if chosen.isEmpty then none.pure
               else
-                val samples = NonEmptyList((none -> (target ∸ sum)), chosen)
+                val samples = NonEmptyList(none -> (target ∸ sum), chosen)
                 val normalized = Nested[NonEmptyList, (Option[Weighted[W, A]], _), W](samples)
                   .map(_ / target)
                   .value
