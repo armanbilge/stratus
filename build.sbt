@@ -20,7 +20,7 @@ val kittensVersion = "3.0.0-M4"
 val catsEffectVersion = "3.3.12"
 val fs2Version = "3.2.8"
 val schrodingerVersion = "0.4-e0d2446"
-val spireVersion = "0.18.0-M3"
+val spireVersion = "0.18.0"
 
 val munitVersion = "0.7.29"
 val munitCEVersion = "1.0.7"
