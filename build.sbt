@@ -15,7 +15,7 @@ ThisBuild / scalacOptions ++= Seq("-new-syntax", "-indent", "-source:future")
 ThisBuild / githubWorkflowJavaVersions := Seq(JavaSpec.temurin("17"))
 ThisBuild / tlJdkRelease := Some(8)
 
-val catsVersion = "2.7.0"
+val catsVersion = "2.8.0"
 val kittensVersion = "3.0.0-M4"
 val catsEffectVersion = "3.3.12"
 val fs2Version = "3.2.8"
