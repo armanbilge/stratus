@@ -18,7 +18,7 @@ ThisBuild / tlJdkRelease := Some(8)
 val catsVersion = "2.8.0"
 val kittensVersion = "3.0.0-M4"
 val catsEffectVersion = "3.3.14"
-val fs2Version = "3.2.13"
+val fs2Version = "3.2.14"
 val schrodingerVersion = "0.4-e0d2446"
 val spireVersion = "0.18.0"
 
