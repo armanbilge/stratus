@@ -32,7 +32,11 @@ import schrodinger.montecarlo.Weighted
 import schrodinger.testkit.arbitrary.given
 import schrodinger.unsafe.rng.SplitMix
 
+import scala.concurrent.duration.*
+
 class SkeinSuite extends CatsEffectSuite, ScalaCheckEffectSuite:
+
+  override def munitIOTimeout = 1.minute
 
   test("sample size maintained above threshold") {
     forAllF(Gen.size, arbitrary[SplitMix]) { (skeinSize, splitMix) =>
