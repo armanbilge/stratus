@@ -47,7 +47,7 @@ object NonNegRational extends NonNegRationalLowPriority:
     for
       n <- arbitrary[Byte]
       d <- arbitrary[Byte].map(n => if n == 0 then 1 else n)
-    yield Rational(n, d).abs
+    yield Rational(n, d).abs,
   )
   given Cogen[NonNegRational] =
     Cogen[(BigInt, BigInt)].contramap(r => (r.numerator.toBigInt, r.denominator.toBigInt))

@@ -37,7 +37,7 @@ import Eagle.*
 final case class Eagle[W](
     observationCount: Long,
     meanWeight: W,
-    meanSquaredWeight: W
+    meanSquaredWeight: W,
 ) derives Eq,
       Show:
 
@@ -55,7 +55,7 @@ final case class Eagle[W](
     Eagle(
       this.observationCount + 1,
       meanWeight * correction + weight / newObservationCount,
-      meanSquaredWeight * correction + (weight * weight) / newObservationCount
+      meanSquaredWeight * correction + (weight * weight) / newObservationCount,
     )
 
 object Eagle:
@@ -89,5 +89,5 @@ object Eagle:
         Eagle(
           x.observationCount + y.observationCount,
           x.meanWeight * xCorrection + y.meanWeight * yCorrection,
-          x.meanSquaredWeight * xCorrection + y.meanSquaredWeight * yCorrection
+          x.meanSquaredWeight * xCorrection + y.meanSquaredWeight * yCorrection,
         )

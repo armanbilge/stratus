@@ -4,7 +4,7 @@ ThisBuild / tlUntaggedAreSnapshots := false
 ThisBuild / organization := "com.armanbilge"
 ThisBuild / organizationName := "Arman Bilge"
 ThisBuild / developers := List(
-  tlGitHubDev("armanbilge", "Arman Bilge")
+  tlGitHubDev("armanbilge", "Arman Bilge"),
 )
 
 ThisBuild / tlSonatypeUseLegacyHost := false
@@ -49,9 +49,9 @@ lazy val core = crossProject(JVMPlatform, NativePlatform)
       "org.typelevel" %%% "munit-cats-effect" % munitCEVersion % Test,
       "org.typelevel" %%% "discipline-munit" % disciplineMunitVersion % Test,
       "org.scalacheck" %%% "scalacheck" % scalaCheckVersion % Test,
-      "org.typelevel" %%% "scalacheck-effect-munit" % scalaCheckEffectVersion % Test
-    )
+      "org.typelevel" %%% "scalacheck-effect-munit" % scalaCheckEffectVersion % Test,
+    ),
   )
   .jvmSettings(
-    Test / fork := true
+    Test / fork := true,
   )

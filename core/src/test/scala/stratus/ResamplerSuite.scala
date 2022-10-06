@@ -37,11 +37,12 @@ import schrodinger.math.syntax.*
 import schrodinger.montecarlo.Weighted
 
 class ResamplerTests[F[_], W, A](resampler: Resampler[Dist[W, _], W]) extends Laws:
-  def resampler[A](
-      using CommutativeSemifield[W],
+  def resampler[A](using
+      CommutativeSemifield[W],
       Eq[W],
       Arbitrary[NonEmptyVector[Weighted[W, A]]],
-      Arbitrary[Eagle[W]]): RuleSet =
+      Arbitrary[Eagle[W]],
+  ): RuleSet =
     DefaultRuleSet(
       "resampler",
       None,
@@ -55,28 +56,27 @@ class ResamplerTests[F[_], W, A](resampler: Resampler[Dist[W, _], W]) extends La
             .runA(samples.toVector)
 
           received.mean === CommutativeRig[W].sum(samples.map(_.weight).toVector)
-      }
+      },
     )
 
 class ResamplerSuite extends DisciplineSuite:
 
   override def scalaCheckTestParameters =
-    super
-      .scalaCheckTestParameters
+    super.scalaCheckTestParameters
       .withMaxSize(
-        if System.getProperty("java.vm.name") == "Scala Native" then 3 else 4
+        if System.getProperty("java.vm.name") == "Scala Native" then 3 else 4,
       )
 
   checkAll(
     "Resampler.identity",
-    ResamplerTests[Dist[NonNegRational, _], NonNegRational, Long](Resampler.identity).resampler
+    ResamplerTests[Dist[NonNegRational, _], NonNegRational, Long](Resampler.identity).resampler,
   )
 
   checkAll(
     "Resampler.targetMeanWeight",
     ResamplerTests[Dist[NonNegRational, _], NonNegRational, Long](
-      Resampler.targetMeanWeight
-    ).resampler
+      Resampler.targetMeanWeight,
+    ).resampler,
   )
 
   property("identity resampler preserves samples") {
@@ -100,7 +100,7 @@ class ResamplerSuite extends DisciplineSuite:
     forAll {
       (
           samples: NonEmptyVector[Weighted[NonNegRational, Long]],
-          eagle0: Eagle[NonNegRational]
+          eagle0: Eagle[NonNegRational],
       ) =>
         val eagle = eagle0 |+| Eagle(samples.map(_.weight))
 

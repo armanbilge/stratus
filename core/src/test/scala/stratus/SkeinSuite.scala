@@ -40,33 +40,33 @@ class SkeinSuite extends CatsEffectSuite, ScalaCheckEffectSuite:
 
   test("sample size maintained above threshold") {
     forAllF(Gen.size, arbitrary[SplitMix]) { (skeinSize, splitMix) =>
-      RVIO.algebra[SplitMix].flatMap {
-        case given RVIO.Algebra[SplitMix] =>
-          val rv = Ref.of(Eagle.eaglet[NonNegRational]).flatMap { eagle =>
-            Stream
-              .repeatEval {
-                DiscreteUniform(0 to 128)
-                  .map(w => Weighted(NonNegRational(w), NonNegRational(1), ()))
-                  .flatTap(wu => eagle.update(_.observe(wu.weight)))
-              }
-              .through(
-                Skein(
-                  skeinSize,
-                  eagle.get,
-                  new:
-                    def resample[A](eagle: Eagle[NonNegRational]) =
-                      StateT
-                        .inspectF[RVIO[SplitMix, _], Vector[Weighted[NonNegRational, A]], Unit](
-                          samples => RVIO.eval(IO(assert(samples.nonEmpty))))
-                        >> Resampler.identity.resample(eagle)
-                ).pipe
-              )
-              .take(100 * skeinSize)
-              .compile
-              .drain
-          }
+      RVIO.algebra[SplitMix].flatMap { case given RVIO.Algebra[SplitMix] =>
+        val rv = Ref.of(Eagle.eaglet[NonNegRational]).flatMap { eagle =>
+          Stream
+            .repeatEval {
+              DiscreteUniform(0 to 128)
+                .map(w => Weighted(NonNegRational(w), NonNegRational(1), ()))
+                .flatTap(wu => eagle.update(_.observe(wu.weight)))
+            }
+            .through(
+              Skein(
+                skeinSize,
+                eagle.get,
+                new:
+                  def resample[A](eagle: Eagle[NonNegRational]) =
+                    StateT
+                      .inspectF[RVIO[SplitMix, _], Vector[Weighted[NonNegRational, A]], Unit](
+                        samples => RVIO.eval(IO(assert(samples.nonEmpty))),
+                      )
+                      >> Resampler.identity.resample(eagle),
+              ).pipe,
+            )
+            .take(100 * skeinSize)
+            .compile
+            .drain
+        }
 
-          rv.simulate(splitMix)
+        rv.simulate(splitMix)
       }
     }
   }
@@ -75,25 +75,24 @@ class SkeinSuite extends CatsEffectSuite, ScalaCheckEffectSuite:
     forAllF(
       arbitrary[List[Weighted[NonNegRational, Unit]]],
       Gen.size,
-      arbitrary[SplitMix]
+      arbitrary[SplitMix],
     ) { (samples, skeinSize, splitMix) =>
-      RVIO.algebra[SplitMix].flatMap {
-        case given RVIO.Algebra[SplitMix] =>
-          val rv = Ref.of(Eagle.eaglet[NonNegRational]).flatMap { eagle =>
-            Stream
-              .emits(samples)
-              .through(
-                Skein(
-                  skeinSize,
-                  eagle.get,
-                  Resampler.identity
-                ).pipe
-              )
-              .compile
-              .drain
-          }
+      RVIO.algebra[SplitMix].flatMap { case given RVIO.Algebra[SplitMix] =>
+        val rv = Ref.of(Eagle.eaglet[NonNegRational]).flatMap { eagle =>
+          Stream
+            .emits(samples)
+            .through(
+              Skein(
+                skeinSize,
+                eagle.get,
+                Resampler.identity,
+              ).pipe,
+            )
+            .compile
+            .drain
+        }
 
-          rv.simulate(splitMix)
+        rv.simulate(splitMix)
       }
 
     }

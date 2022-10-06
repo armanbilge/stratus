@@ -38,21 +38,21 @@ trait Resampler[F[_], W]:
 object Resampler:
   def identity[F[_]: Monad, W](using DiscreteUniform[F, Long]): Resampler[F, W] = new:
     def resample[A](eagle: Eagle[W]) =
-      StateT
-        .get
+      StateT.get
         .flatMapF((v: Vector[Weighted[W, A]]) => DiscreteUniform(v.indices))
         .flatMap(pop)
         .map(Some(_))
 
-  def targetMeanWeight[F[_]: Monad, W: Semifield: Monus: Order](
-      using cat: Categorical[F, NonEmptyList[W], Long],
-      unif: DiscreteUniform[F, Long]
+  def targetMeanWeight[F[_]: Monad, W: Semifield: Monus: Order](using
+      cat: Categorical[F, NonEmptyList[W], Long],
+      unif: DiscreteUniform[F, Long],
   ): Resampler[F, W] = targetWeight(_.meanWeight.pure)
 
-  def targetWeight[F[_]: Monad, W: Monus: Order](computeTarget: Eagle[W] => F[W])(
-      using W: Semifield[W],
+  def targetWeight[F[_]: Monad, W: Monus: Order](computeTarget: Eagle[W] => F[W])(using
+      W: Semifield[W],
       cat: Categorical[F, NonEmptyList[W], Long],
-      unif: DiscreteUniform[F, Long]): Resampler[F, W] = new:
+      unif: DiscreteUniform[F, Long],
+  ): Resampler[F, W] = new:
     def resample[A](eagle: Eagle[W]) =
       StateT.liftF(computeTarget(eagle)).flatMap { target =>
         if W.isZero(target) then none.pure
@@ -75,7 +75,7 @@ object Resampler:
                           .modify[F, Vector[Weighted[W, A]]](_.appended(rtn))
                           .as((Some(choose) -> choose.weight :: chosen, target).asRight)
                     },
-                  (chosen, sum).asRight.pure
+                  (chosen, sum).asRight.pure,
                 )
             }
             .flatMapF { (chosen, sum) =>
@@ -96,7 +96,7 @@ object Resampler:
   // wp <= wa.weight
   private[stratus] def split[W: Rig: Monus: Eq, A](
       wa: Weighted[W, A],
-      wp: W
+      wp: W,
   ): (Weighted[W, A], Weighted[W, A]) = wa match
     case Weighted.Heavy(w, d, a) => (Weighted(wp, d, a), Weighted(w ∸ wp, d, a))
     case weightless @ Weighted.Weightless(_) => (weightless, weightless)
