@@ -61,7 +61,11 @@ class ResamplerTests[F[_], W, A](resampler: Resampler[Dist[W, _], W]) extends La
 class ResamplerSuite extends DisciplineSuite:
 
   override def scalaCheckTestParameters =
-    super.scalaCheckTestParameters.withMaxSize(4)
+    super
+      .scalaCheckTestParameters
+      .withMaxSize(
+        if System.getProperty("java.vm.name") == "Scala Native" then 3 else 4
+      )
 
   checkAll(
     "Resampler.identity",
