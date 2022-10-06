@@ -30,13 +30,14 @@ object Skein:
   def apply[F[_]: FlatMap, W](
       size: Int,
       eagle: F[Eagle[W]],
-      resampler: Resampler[F, W]): Skein[F, W] =
+      resampler: Resampler[F, W],
+  ): Skein[F, W] =
     new:
       def pipe[A] = in =>
 
         def go(
             flock: Vector[Weighted[W, A]],
-            in: Stream[F, Weighted[W, A]]
+            in: Stream[F, Weighted[W, A]],
         ): Pull[F, Weighted[W, A], Unit] =
           in.pull.uncons.flatMap {
             case Some((chunk, tail)) =>
@@ -47,7 +48,7 @@ object Skein:
 
         def emitWhile(
             flock: Vector[Weighted[W, A]],
-            threshold: Int
+            threshold: Int,
         ): Pull[F, Weighted[W, A], Vector[Weighted[W, A]]] =
           if flock.length >= threshold && flock.nonEmpty then
             Pull.eval(eagle.flatMap(resampler.resample(_).run(flock))).flatMap {

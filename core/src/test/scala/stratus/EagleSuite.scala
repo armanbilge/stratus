@@ -45,7 +45,7 @@ class EagleSuite extends DisciplineSuite:
     forAll { (eagle: Eagle[NonNegRational], observation: NonNegRational) =>
       assertEquals(
         eagle.observe(observation),
-        eagle |+| Eagle(1, observation, observation * observation)
+        eagle |+| Eagle(1, observation, observation * observation),
       )
     }
   }
