@@ -3,6 +3,7 @@ ThisBuild / tlUntaggedAreSnapshots := false
 
 ThisBuild / organization := "com.armanbilge"
 ThisBuild / organizationName := "Arman Bilge"
+ThisBuild / startYear := Some(2022)
 ThisBuild / developers := List(
   tlGitHubDev("armanbilge", "Arman Bilge"),
 )
