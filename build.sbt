@@ -10,7 +10,7 @@ ThisBuild / developers := List(
 
 ThisBuild / tlSonatypeUseLegacyHost := false
 
-ThisBuild / crossScalaVersions := Seq("3.2.1")
+ThisBuild / crossScalaVersions := Seq("3.2.2")
 ThisBuild / scalacOptions ++= Seq("-new-syntax", "-indent", "-source:future")
 ThisBuild / Test / testOptions += Tests.Argument("+l")
 
