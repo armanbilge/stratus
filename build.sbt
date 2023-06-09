@@ -24,7 +24,7 @@ val fs2Version = "3.5.0"
 val schrodingerVersion = "0.4-46f23fd"
 val spireVersion = "0.18.0"
 
-val munitVersion = "1.0.0-M7"
+val munitVersion = "1.0.0-M8"
 val munitCEVersion = "2.0.0-M3"
 val disciplineMunitVersion = "2.0.0-M3"
 val scalaCheckVersion = "1.17.0"
