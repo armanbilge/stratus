@@ -18,7 +18,7 @@ ThisBuild / githubWorkflowJavaVersions := Seq(JavaSpec.temurin("17"))
 ThisBuild / tlJdkRelease := Some(8)
 
 val catsVersion = "2.9.0"
-val kittensVersion = "3.0.0"
+val kittensVersion = "3.1.0"
 val catsEffectVersion = "3.4.6"
 val fs2Version = "3.5.0"
 val schrodingerVersion = "0.4-46f23fd"
