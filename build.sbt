@@ -27,7 +27,7 @@ val spireVersion = "0.18.0"
 val munitVersion = "1.0.0-M7"
 val munitCEVersion = "2.0.0-M3"
 val disciplineMunitVersion = "2.0.0-M3"
-val scalaCheckVersion = "1.17.0"
+val scalaCheckVersion = "1.17.1"
 val scalaCheckEffectVersion = "2.0.0-M2"
 
 lazy val root = tlCrossRootProject.aggregate(core)
